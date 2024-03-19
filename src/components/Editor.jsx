@@ -1,16 +1,26 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import Editor from "@monaco-editor/react";
+import ACTIONS from "../Actions";
 
-const CodeEditor = ({ socketRef , roomId, onCodeChange   }) => {
-  const [code, setCode] = useState("//start writing your cpp program ");
+const CodeEditor = ({ socketRef, roomId, onCodeChange }) => {
+  const [code, setCode] = useState("// Start writing your C++ program...");
   const [output, setOutput] = useState("");
+  const editorRef = useRef(null);
+
+  useEffect(() => {
+    if (socketRef && socketRef.current) {
+      socketRef.current.on(ACTIONS.CODE_CHANGE, ({ code }) => {
+        setCode(code);
+      });
+    }
+  }, [socketRef]);
 
   const compileCode = () => {
     axios
       .post("http://localhost:8000/compile", { code })
       .then((response) => {
-        setOutput(response.data); 
+        setOutput(response.data.output);
       })
       .catch((error) => {
         console.error("Error compiling code:", error);
@@ -18,9 +28,11 @@ const CodeEditor = ({ socketRef , roomId, onCodeChange   }) => {
   };
 
   const handleCodeChange = (value) => {
-    setCode(value)
-    console.log(code)
-  }
+    setCode(value);
+  
+    socketRef.current.emit(ACTIONS.CODE_CHANGE, { roomId, code: value });
+    onCodeChange(value);
+  };
 
   return (
     <div className="flex flex-col h-screen">
@@ -28,7 +40,7 @@ const CodeEditor = ({ socketRef , roomId, onCodeChange   }) => {
         <Editor
           height="90vh"
           defaultLanguage="cpp"
-          theme="vs-code"
+          theme="vs-dark"
           value={code}
           onChange={handleCodeChange}
         />
@@ -50,7 +62,7 @@ const CodeEditor = ({ socketRef , roomId, onCodeChange   }) => {
         </div>
         <div className="flex-1 ml-4">
           <h3 className="text-lg font-semibold mb-2">Output:</h3>
-          <pre className="text-md overflow-auto">{output.output}</pre>
+          <pre className="text-md overflow-auto">{output}</pre>
         </div>
       </div>
     </div>
