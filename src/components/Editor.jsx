@@ -3,19 +3,24 @@ import axios from "axios";
 import Editor from "@monaco-editor/react";
 
 const CodeEditor = ({ socketRef , roomId, onCodeChange   }) => {
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState("//start writing your cpp program ");
   const [output, setOutput] = useState("");
 
   const compileCode = () => {
     axios
       .post("http://localhost:8000/compile", { code })
       .then((response) => {
-        setOutput(response.data); // Directly set the response.data
+        setOutput(response.data); 
       })
       .catch((error) => {
         console.error("Error compiling code:", error);
       });
   };
+
+  const handleCodeChange = (value) => {
+    setCode(value)
+    console.log(code)
+  }
 
   return (
     <div className="flex flex-col h-screen">
@@ -24,7 +29,8 @@ const CodeEditor = ({ socketRef , roomId, onCodeChange   }) => {
           height="90vh"
           defaultLanguage="cpp"
           theme="vs-code"
-          onChange={(value) => setCode(value)}
+          value={code}
+          onChange={handleCodeChange}
         />
       </div>
       <div className="flex justify-between items-center bg-gray-800 p-4 text-white">

@@ -58,6 +58,8 @@ const EditorPage = () => {
     });
 }
     init();
+
+    
   }, [location.state, roomId, reactNavigator]);
 
   const copyRoomId = () => {};
