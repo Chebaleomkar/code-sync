@@ -16,16 +16,40 @@ const CodeEditor = ({ socketRef, roomId, onCodeChange }) => {
     }
   }, [socketRef]);
 
+
   const compileCode = () => {
-    axios
-      .post("http://localhost:8000/compile", { code })
-      .then((response) => {
-        setOutput(response.data.output);
-      })
-      .catch((error) => {
-        console.error("Error compiling code:", error);
-      });
-  };
+    const language = "javascript";
+
+    if (language === 'javascript') {
+        try {
+          const codeFunction = new Function('return ' + code);
+          const result = codeFunction();
+          console.log(result)
+          setOutput(result)
+        } catch (error) {
+            setOutput(`Error: ${error.message}`);
+        }
+        return;
+    }
+
+    const sanitizedCode = code.replace(/[\r\n]+/g, ''); // Remove carriage returns and newlines
+
+    axios.post("http://localhost:8000/compile", { code: sanitizedCode, language })
+        .then((response) => {
+            const { error, output } = response.data;
+            if (error) {
+                setOutput(`Error: ${error}`);
+            } else {
+                setOutput(output);
+            }
+        })
+        .catch((error) => {
+            console.error("Error compiling code:", error);
+            setOutput("Error: Failed to compile code. Please try again later.");
+        });
+};
+
+
 
   const handleCodeChange = (value) => {
     setCode(value);
@@ -39,7 +63,7 @@ const CodeEditor = ({ socketRef, roomId, onCodeChange }) => {
       <div className="flex-grow">
         <Editor
           height="90vh"
-          defaultLanguage="cpp"
+          defaultLanguage="javascript"
           theme="vs-dark"
           value={code}
           onChange={handleCodeChange}
@@ -54,12 +78,12 @@ const CodeEditor = ({ socketRef, roomId, onCodeChange }) => {
             Compile and Run
           </button>
         </div>
-        <div className="flex-1 ml-4">
+        {/* <div className="flex-1 ml-4">
           <textarea
             className="w-full h-20 p-2 border border-gray-400 rounded focus:outline-none focus:border-blue-500"
             placeholder="Input"
           />
-        </div>
+        </div> */}
         <div className="flex-1 ml-4">
           <h3 className="text-lg font-semibold mb-2">Output:</h3>
           <pre className="text-md overflow-auto">{output}</pre>
