@@ -20,19 +20,7 @@ const CodeEditor = ({ socketRef, roomId, onCodeChange }) => {
   const compileCode = () => {
     const language = "javascript";
 
-    if (language === 'javascript') {
-        try {
-          const codeFunction = new Function('return ' + code);
-          const result = codeFunction();
-          console.log(result)
-          setOutput(result)
-        } catch (error) {
-            setOutput(`Error: ${error.message}`);
-        }
-        return;
-    }
-
-    const sanitizedCode = code.replace(/[\r\n]+/g, ''); // Remove carriage returns and newlines
+    const sanitizedCode = code.replace(/[\r\n]+/g, ''); 
 
     axios.post("http://localhost:8000/compile", { code: sanitizedCode, language })
         .then((response) => {
@@ -62,14 +50,14 @@ const CodeEditor = ({ socketRef, roomId, onCodeChange }) => {
     <div className="flex flex-col h-screen">
       <div className="flex-grow">
         <Editor
-          height="90vh"
+          height="82vh"
           defaultLanguage="javascript"
           theme="vs-dark"
           value={code}
           onChange={handleCodeChange}
         />
       </div>
-      <div className="flex justify-between items-center bg-gray-800 p-4 text-white">
+      <div className="flex justify-between items-center bg-gray-800  text-white">
         <div className="flex-shrink-0">
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
@@ -86,7 +74,7 @@ const CodeEditor = ({ socketRef, roomId, onCodeChange }) => {
         </div> */}
         <div className="flex-1 ml-4">
           <h3 className="text-lg font-semibold mb-2">Output:</h3>
-          <pre className="text-md overflow-auto">{output}</pre>
+          <pre className="text-md overflow-auto border border-black p-2">{output}</pre>
         </div>
       </div>
     </div>
@@ -94,3 +82,4 @@ const CodeEditor = ({ socketRef, roomId, onCodeChange }) => {
 };
 
 export default CodeEditor;
+

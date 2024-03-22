@@ -37,7 +37,7 @@ io.on('connection', (socket) => {
             io.to(socketId).emit(ACTIONS.JOINED, { clients, userName, socketId: socket.id });
         })
     });
-    
+
     socket.on(ACTIONS.CODE_CHANGE, ({ roomId, code }) => {
         socket.in(roomId).emit(ACTIONS.CODE_CHANGE, { code });
     });
@@ -62,58 +62,48 @@ io.on('connection', (socket) => {
 
 
 // routes 
-
 app.post('/compile', (req, res) => {
     const { code, language } = req.body;
-    console.log(code )
-    console.log(language)
-    let fileName, compilationCommand, executionCommand;
+  console.log(code)
+  console.log(language)
+    if (language === 'javascript') {
+        const fileName = 'temp.js';
+        fs.writeFileSync(fileName, code);
 
-    if (language === 'cpp') {
-        fileName = 'temp.cpp';
-        compilationCommand = `g++ ${fileName} -o output.exe`;
-        executionCommand = './output.exe';
-    } else if (language === 'js') {
-        fileName = 'temp.js';
-        compilationCommand = ''; // No compilation needed for JavaScript
-        executionCommand = `node ${fileName}`;
+        // Run the JavaScript file using child_process
+        const executionCommand = `node ${fileName}`;
+        exec(executionCommand, (runError, runStdout, runStderr) => {
+            if (runError) {
+                res.send({ error: runError.message, output: runStderr });
+            } else {
+                res.send({ error: null, output: runStdout });
+            }
+            // Remove the temporary file after execution
+            fs.unlinkSync(fileName);
+        });
+
     } else {
-        res.status(400).send({ error: 'Unsupported language' });
-        return;
-    }
+        // Save the C++ code to a file
+        const fileName = 'temp.cpp';
+        const fs = require('fs');
+        fs.writeFileSync(fileName, code);
 
-    // Save the code to a file
-    fs.writeFileSync(fileName, code);
-
-    if (compilationCommand) {
-        // Run the compilation command
+        // Run the compilation command using child_process
+        const compilationCommand = `g++ ${fileName} -o output.exe`;
         exec(compilationCommand, (compileError, compileStdout, compileStderr) => {
             if (compileError) {
-                res.status(400).send({ error: compileError.message, output: compileStderr });
+                res.send({ error: compileError.message, output: compileStderr });
                 return;
             }
-            // Run the compiled executable or JavaScript file
+
+            // Run the compiled executable
+            const executionCommand = 'output.exe';
             exec(executionCommand, (runError, runStdout, runStderr) => {
                 res.send({ error: runError ? runError.message : null, output: runStdout || runStderr });
-
-                // Delete the temporary file after execution
-                fs.unlinkSync(fileName);
-                if (language === 'cpp') {
-                    fs.unlinkSync('output.exe');
-                }
             });
-        });
-    } else {
-        // For JavaScript, directly run the file without compilation
-        exec(executionCommand, (runError, runStdout, runStderr) => {
-            res.send({ error: runError ? runError.message : null, output: runStdout || runStderr });
-
-            // Delete the temporary JavaScript file after execution
-            fs.unlinkSync(fileName);
         });
     }
 });
-
 
 const PORT = process.env.port || 8000;
 server.listen(PORT, () => {
