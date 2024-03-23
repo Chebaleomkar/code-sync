@@ -60,13 +60,11 @@ io.on('connection', (socket) => {
 
 });
 
-
 // routes 
 app.post('/compile', (req, res) => {
     const { code, language } = req.body;
-  console.log(code)
-  console.log(language)
-    if (language === 'javascript') {
+
+    if (language === 'js') {
         const fileName = 'temp.js';
         fs.writeFileSync(fileName, code);
 
@@ -81,29 +79,45 @@ app.post('/compile', (req, res) => {
             // Remove the temporary file after execution
             fs.unlinkSync(fileName);
         });
+    } else if (language === 'cpp') {
+        
+        const outputDir = path.join(__dirname, 'compiled');
+        if (!fs.existsSync(outputDir)) {
+            fs.mkdirSync(outputDir);
+        }
 
-    } else {
-        // Save the C++ code to a file
-        const fileName = 'temp.cpp';
-        const fs = require('fs');
+        // Write the C++ code to a file
+        const fileName = path.join(outputDir, 'temp.cpp');
         fs.writeFileSync(fileName, code);
 
-        // Run the compilation command using child_process
-        const compilationCommand = `g++ ${fileName} -o output.exe`;
+        // Compilation command to create temp.exe in the compiled directory
+        const compilationCommand = `g++ ${fileName} -o ${path.join(outputDir, 'temp.exe')}`;
+
         exec(compilationCommand, (compileError, compileStdout, compileStderr) => {
             if (compileError) {
-                res.send({ error: compileError.message, output: compileStderr });
+                
+                res.status(500).send({ error: 'Compilation Error', message: compileError.message });
                 return;
             }
 
-            // Run the compiled executable
-            const executionCommand = 'output.exe';
+            // Run the compiled executable from the compiled directory
+            const executionCommand = `${path.join(outputDir, 'temp.exe')}`;
             exec(executionCommand, (runError, runStdout, runStderr) => {
-                res.send({ error: runError ? runError.message : null, output: runStdout || runStderr });
+                if (runError) {
+                
+                    res.status(500).send({ error: 'Execution Error', message: runError.message });
+                    return;
+                }
+               
+                res.send({ error: null, output: runStdout || runStderr });
             });
+            
         });
+    } else {
+        res.status(400).send({ error: 'Unsupported language', message: 'The requested language is not supported.' });
     }
 });
+
 
 const PORT = process.env.port || 8000;
 server.listen(PORT, () => {

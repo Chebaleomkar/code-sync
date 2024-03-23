@@ -1,5 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
+import {
+  Navigate,
+  useLocation,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import Client from "../components/Client";
 import CodeEditor from "../components/Editor";
 import { initSocket } from "../socket";
@@ -7,6 +12,7 @@ import ACTIONS from "../Actions";
 import toast, { Toaster } from "react-hot-toast";
 
 const EditorPage = () => {
+  const [selectedLanguage, setSelectedLanguage] = useState("");
   const socketRef = useRef(null);
   const codeRef = useRef(null);
 
@@ -33,17 +39,22 @@ const EditorPage = () => {
           userName: location.state?.userName,
         });
 
-        socketRef.current.on(ACTIONS.JOINED, ({ clients, userName, socketId }) => {
-          if (userName !== location.state?.userName) {
-            toast.success(`${userName} joined the room`);
-            console.log(`${userName} joined`);
+        socketRef.current.on(
+          ACTIONS.JOINED,
+          ({ clients, userName, socketId }) => {
+            if (userName !== location.state?.userName) {
+              toast.success(`${userName} joined the room`);
+              console.log(`${userName} joined`);
+            }
+            setClients(clients);
           }
-          setClients(clients);
-        });
+        );
 
         socketRef.current.on(ACTIONS.DISCONNECTED, ({ socketId, userName }) => {
           toast.success(`${userName} left the room`);
-          setClients((prev) => prev.filter((client) => client.socketId !== socketId));
+          setClients((prev) =>
+            prev.filter((client) => client.socketId !== socketId)
+          );
         });
       }
     };
@@ -68,6 +79,10 @@ const EditorPage = () => {
     return <Navigate to="/" />;
   }
 
+  const handleChange = (e) => {
+    setSelectedLanguage(e.target.value);
+  };
+
   return (
     <>
       <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
@@ -77,6 +92,33 @@ const EditorPage = () => {
             <div className="logo">
               <img className="logoImage" src="/code-sync.png" alt="logo" />
             </div>
+            {/* select language */}
+            <div className="w-full flex flex-col items-center justify-center">
+              <label htmlFor="language" className="text-white text-sm mb-2">
+                Select a language:
+              </label>
+              <select
+                id="language"
+                value={selectedLanguage}
+                onChange={handleChange}
+                className="w-full p-2 text-black border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              >
+                <option value="">Select language to code</option>
+                <option value="js" className="text-green-500">
+                  JavaScript
+                </option>
+                <option value="cpp" className="text-blue-500">
+                  C++
+                </option>
+              </select>
+              {selectedLanguage && (
+                <p className="mt-2 text-sm text-gray-500">
+                  You selected: {selectedLanguage}
+                </p>
+              )}
+            </div>
+
+            <br />
             <h3>Connected</h3>
             <div className="clientsList">
               {clients.map((client) => (
@@ -98,6 +140,7 @@ const EditorPage = () => {
             onCodeChange={(code) => {
               codeRef.current = code;
             }}
+            selectedLanguage={selectedLanguage}
           />
         </div>
       </div>
