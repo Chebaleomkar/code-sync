@@ -22,18 +22,18 @@ const CodeEditor = ({ socketRef, roomId, onCodeChange, selectedLanguage }) => {
       setCode(
         "console.log(`write your js code hit the compile and run button to execute`)"
       );
-    }
-
-    else if (selectedLanguage === "cpp") {
+    }else if (selectedLanguage === "cpp") {
       setCode(
         `#include<iostream> \nusing namespace std;\n\nint main(){ \n\n //write you cpp code here   \n \n return 0;\n}`
       );
-    }
-
-    else if(selectedLanguage === 'java'){
-
-    }
-    else{
+    }else if(selectedLanguage === 'java'){
+        setCode(`public class Main {
+          public static void main(String[] args) {
+              System.out.println("Hello, Java!");
+          }
+      }
+      `)
+    }else{
       setCode('')
     }
 
@@ -79,7 +79,7 @@ const CodeEditor = ({ socketRef, roomId, onCodeChange, selectedLanguage }) => {
           <Editor
             height="80vh"
             defaultLanguage={selectedLanguage | 'cpp'}
-            // theme="vs-"
+            theme="vs-dark"
             value={code}
             onChange={handleCodeChange}
           />
