@@ -24,11 +24,20 @@ const CodeEditor = ({ socketRef, roomId, onCodeChange, selectedLanguage }) => {
       );
     }
 
-    if (selectedLanguage === "cpp") {
+    else if (selectedLanguage === "cpp") {
       setCode(
         `#include<iostream> \nusing namespace std;\n\nint main(){ \n\n //write you cpp code here   \n \n return 0;\n}`
       );
     }
+
+    else if(selectedLanguage === 'java'){
+
+    }
+    else{
+      setCode('')
+    }
+
+    
 
    
 
@@ -69,8 +78,8 @@ const CodeEditor = ({ socketRef, roomId, onCodeChange, selectedLanguage }) => {
         <div className="flex-grow">
           <Editor
             height="80vh"
-            defaultLanguage="cpp"
-            theme="vs-dark"
+            defaultLanguage={selectedLanguage | 'cpp'}
+            // theme="vs-"
             value={code}
             onChange={handleCodeChange}
           />
@@ -90,11 +99,11 @@ const CodeEditor = ({ socketRef, roomId, onCodeChange, selectedLanguage }) => {
             placeholder="Input"
           />
         </div> */}
-          <div className="flex-1 ml-4">
+          <div className="flex-1 ml-4 h-20">
             <h3 className="text-lg text-yellow-300 font-semibold mb-2">Output:</h3>
-            <pre className="text-md text-green-500 overflow-auto border border-slate-400 p-2">
+            <span className="text-xl text-green-500 overflow-auto   p-2">
               {output}
-            </pre>
+            </span>
           </div>
         </div>
       </div>

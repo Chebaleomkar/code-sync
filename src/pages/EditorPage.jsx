@@ -83,6 +83,8 @@ const EditorPage = () => {
     setSelectedLanguage(e.target.value);
   };
 
+  const languageSupported = ['javascript' , 'java' , 'cpp']
+
   return (
     <>
       <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
@@ -104,15 +106,16 @@ const EditorPage = () => {
                 className="w-full p-2 text-black border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               >
                 <option value="">Select language to code</option>
-                <option value="js" className="text-green-500">
-                  JavaScript
-                </option>
-                <option value="cpp" className="text-blue-500">
-                  C++
-                </option>
+                {languageSupported.map((item , index)=>(
+                  <option value={item} className="text-green-500">
+                    {item}
+                  </option>
+                ))}
+                
               </select>
+
               {selectedLanguage && (
-                <p className="mt-2 text-sm text-gray-500">
+                <p className="mt-2 text-md text-emerald-400 ">
                   You selected: {selectedLanguage}
                 </p>
               )}

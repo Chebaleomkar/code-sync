@@ -80,7 +80,6 @@ app.post('/compile', (req, res) => {
             fs.unlinkSync(fileName);
         });
     } else if (language === 'cpp') {
-        
         const outputDir = path.join(__dirname, 'compiled');
         if (!fs.existsSync(outputDir)) {
             fs.mkdirSync(outputDir);
@@ -113,7 +112,30 @@ app.post('/compile', (req, res) => {
             });
             
         });
-    } else {
+    } else if (language === 'java') {
+        const fileName = 'Main.java'; // Java file name (assuming it contains the main class)
+        fs.writeFileSync(fileName, code);
+
+        // Compilation command to create Main.class file
+        const compilationCommand = `javac ${fileName}`;
+        exec(compilationCommand, (compileError, compileStdout, compileStderr) => {
+            if (compileError) {
+                res.status(500).send({ error: 'Compilation Error', message: compileError.message });
+                return;
+            }
+
+            // Run the compiled Java program using java command
+            const executionCommand = `java Main`; // Assuming the main class is named Main
+            exec(executionCommand, (runError, runStdout, runStderr) => {
+                if (runError) {
+                    res.status(500).send({ error: 'Execution Error', message: runError.message });
+                    return;
+                }
+                res.send({ error: null, output: runStdout || runStderr });
+            });
+        });
+    } 
+    else {
         res.status(400).send({ error: 'Unsupported language', message: 'The requested language is not supported.' });
     }
 });
